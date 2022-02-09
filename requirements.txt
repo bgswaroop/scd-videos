@@ -28,7 +28,7 @@ scikit-learn==1.0.2
 scipy==1.7.3
 six==1.16.0
 tensorboard==2.8.0
-tensorflow==2.7.0
+tensorflow==2.8.0
 tensorflow-addons==0.15.0
 termcolor==1.1.0
 threadpoolctl==3.0.0
