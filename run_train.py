@@ -37,8 +37,10 @@ def parse_args():
     parser.add_argument('--dataset', type=str, required=True, help='Path to dataset to train the constrained_net')
     parser.add_argument('--height', type=int, default=480, help='Height of CNN input dimension [default: 480]')
     parser.add_argument('--width', type=int, default=800, help='Width of CNN input dimension [default: 800]')
+    parser.add_argument('--frames_per_video', type=int, default=50,
+                        help='to determine #frames to sample for creating multi-frame dataset for the ConvNet')
     parser.add_argument('--gpu_id', type=int, default=None, help='Choose the available GPU devices')
-    parser.add_argument('--category', type=str, help='enter "native", "whatsapp", or "youtube"')
+    parser.add_argument('--category', type=str, choices=["native", "whatsapp", "youtube"])
     parser.add_argument('--global_results_dir', type=Path, required=True, help='Path to results dir')
     parser.add_argument('--const_type', type=none_or_str, default=None, help='Constraint type')
     parser.add_argument('--net_type', type=str, default='mobile',
@@ -66,12 +68,13 @@ def run_flow():
                                batch_size=p.batch_size,
                                height=p.height,
                                width=p.width,
+                               frames_per_video = p.frames_per_video,
                                homogeneous_frames=p.homo_or_not)
 
     distance_matrix = None  # data_factory.get_distance_matrix()
     num_classes = len(data_factory.get_class_names())
     train_ds, num_batches = data_factory.get_tf_train_data(category=p.category)
-    filename_ds, val_ds = data_factory.get_tf_val_data(category=p.category)
+    _, val_ds = data_factory.get_tf_val_data(category=p.category)
 
     if p.net_type == 'mobile':
         net = MobileNet(num_batches, p.global_results_dir, p.const_type, lr=p.lr)

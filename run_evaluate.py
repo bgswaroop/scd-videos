@@ -71,6 +71,8 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--height', type=int, default=480, help='Height of CNN input dimension [default: 480]')
     parser.add_argument('--width', type=int, default=800, help='Width of CNN input dimension [default: 800]')
+    parser.add_argument('--frames_per_video', type=int, default=50,
+                        help='to determine #frames to sample for creating multi-frame dataset for the ConvNet')
     parser.add_argument('--category', type=str, help='enter "native", "whatsapp", or "youtube"')
     parser.add_argument('--suffix', type=str, help='enter suffix string for the predictions folder')
     parser.add_argument('--gpu_id', type=int, default=None, help='Choose the available GPU devices')
@@ -106,7 +108,7 @@ def run_flow():
         model_files = [x for x in model_files if str(p.epoch).zfill(5) in x]
     print(f"Found {len(model_files)} files for model {model_name}")
 
-    dataset = DataFactory(p.dataset, p.batch_size, p.height, p.width, p.homo_or_not)
+    dataset = DataFactory(p.dataset, p.batch_size, p.height, p.width, p.frames_per_video, p.homo_or_not)
     if p.eval_set == 'val':
         filename_ds, eval_ds = dataset.get_tf_val_data(category=p.category)
     elif p.eval_set == 'test':
@@ -114,7 +116,9 @@ def run_flow():
     else:
         raise ValueError('Invalid evaluation set')
     # List containing only the file names of items in evaluation set
-    eval_ds_filepaths = [x.decode("utf-8") for x in filename_ds.as_numpy_iterator()]
+    # eval_ds_filepaths = [x.decode("utf-8") for x in filename_ds.as_numpy_iterator()]
+    eval_ds_filepaths = [[Path(x[0].decode("utf-8")).name, Path(x[1].decode("utf-8")).name, Path(
+        x[2].decode("utf-8")).name] for x in filename_ds.as_numpy_iterator()]
 
     for model_file in model_files:
         frame_predictor = FramePredictor(model_dir=p.input_dir, model_file_name=model_file,

@@ -54,7 +54,8 @@ class VideoPredictor:
 
     def __get_predictions(self, df_frame_predictions):
         # Determine unique videos
-        videos = df_frame_predictions["File"].str.split("-").str[0].unique()
+        # videos = df_frame_predictions["File"].str.split("-").str[0].unique()
+        videos = sorted({x.split(',')[0].strip('[]\\\'').split('-')[0] for x in df_frame_predictions["File"]})
         print(f"Total number of videos to classify: {len(videos)}.")
 
         max_softmax = [[float(y) for y in x.strip('[]').split()] for x in df_frame_predictions['Softmax Scores']]

@@ -54,24 +54,27 @@ tf.config.run_functions_eagerly(True)
 
 class DataFactory:
 
-    def __init__(self, input_dir, batch_size=32, height=480, width=800, homogeneous_frames=None):
+    def __init__(self, input_dir, batch_size, height, width, frames_per_video, homogeneous_frames=None):
 
+        random.seed(108)
         with open(Path(input_dir).joinpath('train.json'), 'r') as f:
             self.train_data = json.load(f)
             self.class_names = np.array(sorted(self.train_data.keys()))
-            self.train_data = list(itertools.chain.from_iterable(self.train_data.values()))
+            self.train_data = self._sample_triplets(self.train_data, frames_per_video)
+            # self.train_data = list(itertools.chain.from_iterable(self.train_data.values()))
             # self.train_data = self._filter_images_based_on_homogeneity(self.train_data, homogeneous_frames)
-            random.seed(108)
             random.shuffle(self.train_data)
 
         with open(Path(input_dir).joinpath('val.json'), 'r') as f:
             self.val_data = json.load(f)
-            self.val_data = sorted(itertools.chain.from_iterable(self.val_data.values()))
+            self.val_data = sorted(self._sample_triplets(self.val_data, frames_per_video))
+            # self.val_data = sorted(itertools.chain.from_iterable(self.val_data.values()))
             # self.val_data = self._filter_images_based_on_homogeneity(self.val_data, homogeneous_frames)
 
         with open(Path(input_dir).joinpath('test.json'), 'r') as f:
             self.test_data = json.load(f)
-            self.test_data = sorted(itertools.chain.from_iterable(self.test_data.values()))
+            self.test_data = sorted(self._sample_triplets(self.test_data, frames_per_video))
+            # self.test_data = sorted(itertools.chain.from_iterable(self.test_data.values()))
             # self.test_data = self._filter_images_based_on_homogeneity(self.test_data, homogeneous_frames)
 
         self.batch_size = batch_size
@@ -104,7 +107,7 @@ class DataFactory:
         return img, label
 
     def get_label(self, file_path):
-        file_parts = tf.strings.split(file_path, os.path.sep)
+        file_parts = tf.strings.split(file_path[0], os.path.sep)
         class_name = file_parts[-3]
         one_hot_vec = tf.cast(class_name == self.class_names, dtype=tf.dtypes.float32, name="labels")
         return one_hot_vec
@@ -116,15 +119,36 @@ class DataFactory:
         return file_name
 
     def load_img(self, file_path, resize_dim=None, ):
-        img = tf.io.read_file(file_path)
-        try:
-            img = tf.image.decode_png(img, channels=3)
-        except Exception as e:
-            print(f'Issue decoding the png image - {file_path}\n')
-            raise e
 
+        # img = []
+        # for fp in file_path:
+        #     tmp_img = tf.io.read_file(fp)
+        #     try:
+        #         tmp_img = tf.image.decode_png(tmp_img, channels=3)
+        #     except Exception as e:
+        #         print(f'Issue decoding the png image - {fp}\n')
+        #         raise e
+        #     img.append(tmp_img[:, :, 1])
+
+        # try:
+        #     img0 = tf.image.decode_png(tf.io.read_file(file_path[0]), channels=3)[:, :, 1]
+        #     img1 = tf.image.decode_png(tf.io.read_file(file_path[1]), channels=3)[:, :, 1]
+        #     img2 = tf.image.decode_png(tf.io.read_file(file_path[2]), channels=3)[:, :, 1]
+        #     img = tf.stack([img0, img1, img2], axis=-1)
+        #     img = tf.py_function(self.center_crop, [img], tf.uint8)
+        #     img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
+        # except:
+        img0 = tf.image.decode_png(tf.io.read_file(file_path[0]), channels=3)
+        img1 = tf.image.decode_png(tf.io.read_file(file_path[1]), channels=3)
+        img2 = tf.image.decode_png(tf.io.read_file(file_path[2]), channels=3)
+        img0 = tf.py_function(self.center_crop, [img0], tf.uint8)[:, :, 1]
+        img1 = tf.py_function(self.center_crop, [img1], tf.uint8)[:, :, 1]
+        img2 = tf.py_function(self.center_crop, [img2], tf.uint8)[:, :, 1]
+        img = tf.stack([img0, img1, img2], axis=-1)
         img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
-        img = tf.py_function(self.center_crop, [img], tf.float32)
+
+        # img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
+        # img = tf.py_function(self.center_crop, [img], tf.float32)
 
         # img = img[:, :, 1]  # Considering only the Green color channel
         # img = tf.expand_dims(img, -1)   # Adding back the num_channels axis : (height, width, num_channels)
@@ -327,4 +351,19 @@ class DataFactory:
         # intra_class_distance = intra_class_distance / tf.math.reduce_sum(intra_class_distance, axis=1, keepdims=True)
         return tf.cast(intra_class_distance, dtype=tf.float32)
 
+    @staticmethod
+    def _sample_triplets(input_data, frames_per_video):
+        filepaths = list(itertools.chain.from_iterable(input_data.values()))
+        all_videos = {}
+        for filepath in filepaths:
+            video_name = '_'.join(Path(filepath).name.split('_')[:-1])
+            if video_name in all_videos:
+                all_videos[video_name].append(filepath)
+            else:
+                all_videos[video_name] = [filepath]
 
+        triplet_data = []
+        for video, video_frames in all_videos.items():
+            triplet_data.extend([random.sample(video_frames, k=3) for _ in range(frames_per_video)])
+
+        return triplet_data
