@@ -161,7 +161,7 @@ class BaseNet(abc.ABC):
 
         # print_predictions_cb = PredictionsCallback(train_ds=train_ds, val_ds=val_ds)
 
-        return [save_model_cb, tensorboard_cb]
+        return [save_model_cb, tensorboard_cb, lr_callback]
 
     def evaluate(self, test_ds, model_path=None):
         if model_path is not None:
