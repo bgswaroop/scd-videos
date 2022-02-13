@@ -66,7 +66,7 @@ class BaseNet(abc.ABC):
         # custom_loss = self.make_custom_loss(self.model)
         self.model.compile(loss=tf.keras.losses.categorical_crossentropy,
                            optimizer=tf.keras.optimizers.SGD(learning_rate=self.lr, momentum=0.95, decay=0.0005),
-                           metrics=["acc"],
+                           metrics=["accuracy"],
                            run_eagerly=True
                            )
         self.model.run_eagerly = True

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="p288722@195.169.22.147:22 password" createEmptyFolders="true" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="p288722@pg-gpu.hpc.rug.nl:22 password" createEmptyFolders="true" autoUploadExternalChanges="true">
     <serverData>
       <paths name="A40">
         <serverdata>

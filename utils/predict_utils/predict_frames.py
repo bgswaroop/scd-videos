@@ -120,6 +120,8 @@ class FramePredictor:
         # self.__plot_constrained_filter()
         # self.__plot_constrained_activations(test_ds)
 
+        # self.model.compile()
+        # evaluate_dict = self.model.evaluate(test_ds, return_dict=True)
         softmax_scores = self.model.predict(test_ds, verbose=1)
 
         # layer_name = 'conv2d_25'

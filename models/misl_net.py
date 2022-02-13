@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Activation, Flatten, Conv2D, MaxPooling2D, BatchNormalization
+from tensorflow.keras.layers import Dense, Activation, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Softmax
 from tensorflow.keras.models import Sequential
 
 from . import BaseNet, Constrained3DKernelMinimal
@@ -52,8 +52,11 @@ class MISLNet(BaseNet):
 
         for i in range(fc_layers):
             model.add(Dense(fc_size, activation=tf.keras.activations.tanh))
+            # model.add(Dropout(rate=0.5))
 
-        model.add(Dense(num_output, activation=tf.keras.activations.softmax))
+        model.add(Dense(num_output, activation=None))
+        # model.add(Dense(num_output, activation=tf.keras.activations.softmax))
+        model.add(Softmax())
 
         self.model = model
         self.model_name = model_name

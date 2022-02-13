@@ -6,7 +6,8 @@ import tensorflow as tf
 tf.config.run_functions_eagerly(True)
 
 from dataset import DataFactory
-from models import MISLNet, MobileNet, EfficientNet, MobileNetContrastive, ResNetContrastive, EfficientNetB0Contrastive
+from models import (MISLNet, MobileNet, EfficientNet, ResNet, MobileNetContrastive, ResNetContrastive,
+                    EfficientNetB0Contrastive)
 
 
 def none_or_str(value):
@@ -44,7 +45,7 @@ def parse_args():
     parser.add_argument('--global_results_dir', type=Path, required=True, help='Path to results dir')
     parser.add_argument('--const_type', type=none_or_str, default=None, help='Constraint type')
     parser.add_argument('--net_type', type=str, default='mobile',
-                        choices=['mobile', 'eff', 'misl', 'mobile_supcon', 'resnet_supcon', 'eff_supcon'])
+                        choices=['mobile', 'eff', 'misl', 'res', 'mobile_supcon', 'resnet_supcon', 'eff_supcon'])
     parser.add_argument('--lr', type=float, default=0.1, help='Learning rate')
     parser.add_argument('--homo_or_not', type=none_or_bool, default=None,
                         help='Filter dataset by homogeneous frames if `True`, or'
@@ -92,6 +93,12 @@ def run_flow():
     elif p.net_type == 'misl':
         net = MISLNet(num_batches, p.global_results_dir, p.const_type)
         net.create_model(num_classes, p.fc_layers, p.fc_size, p.height, p.width, p.model_name)
+        if p.model_path:  # to continue the training
+            net.set_model(p.model_path)
+
+    elif p.net_type == 'res':
+        net = ResNet(num_batches, p.global_results_dir, p.const_type)
+        net.create_model(num_classes, p.height, p.width, p.model_name, p.use_pretrained)
         if p.model_path:  # to continue the training
             net.set_model(p.model_path)
 
