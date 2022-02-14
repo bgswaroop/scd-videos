@@ -1,22 +1,24 @@
 import itertools
 import json
 import math
-import numpy as np
 import os
 import random
-import tensorflow as tf
 import time
-from PIL import Image
-from PIL import ImageFile
-from collections import namedtuple
 from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
+from PIL import ImageFile
+
+from dataset.prnu import extract_single
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-# tf.data.experimental.enable_debug_mode()
+
 tf.config.run_functions_eagerly(True)
 
 
+# tf.data.experimental.enable_debug_mode()
 # GlcmProperties = namedtuple('GlcmProperties', ['File',
 #                                                'mean_contrast', 'max_contrast',
 #                                                'mean_dissimilarity', 'max_dissimilarity',
@@ -99,12 +101,15 @@ class DataFactory:
         return tf.constant((self.img_height, self.img_width), tf.dtypes.int32)
 
     def process_path(self, file_path):
-        label = self.get_label(file_path)
+        # label = self.get_label(file_path)
+        label = tf.py_function(self.get_label, [file_path], tf.float32)
         img = self.load_img(file_path)
         return img, label
 
     def get_label(self, file_path):
-        file_parts = tf.strings.split(file_path, os.path.sep)
+        # file_parts = tf.strings.split(file_path, os.path.sep)
+        # file_parts = file_path.numpy().decode("utf-8").split(os.path.sep)
+        file_parts = file_path.numpy().decode("utf-8").split(os.path.sep)
         class_name = file_parts[-3]
         one_hot_vec = tf.cast(class_name == self.class_names, dtype=tf.dtypes.float32, name="labels")
         return one_hot_vec
@@ -123,8 +128,18 @@ class DataFactory:
             print(f'Issue decoding the png image - {file_path}\n')
             raise e
 
-        img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
-        img = tf.py_function(self.center_crop, [img], tf.float32)
+        img = tf.py_function(self.center_crop, [img], tf.uint8)
+        img_r = tf.expand_dims(img[:, :, 0], -1)
+        img_g = tf.expand_dims(img[:, :, 1], -1)
+        img_b = tf.expand_dims(img[:, :, 2], -1)
+
+        img_r = tf.py_function(extract_single, [img_r], tf.float32)
+        img_g = tf.py_function(extract_single, [img_g], tf.float32)
+        img_b = tf.py_function(extract_single, [img_b], tf.float32)
+
+        img = tf.stack([img_r, img_g, img_b], axis=-1)
+
+        # img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
 
         # img = img[:, :, 1]  # Considering only the Green color channel
         # img = tf.expand_dims(img, -1)   # Adding back the num_channels axis : (height, width, num_channels)
@@ -326,5 +341,3 @@ class DataFactory:
         intra_class_distance = tf.convert_to_tensor(intra_class_distance)
         # intra_class_distance = intra_class_distance / tf.math.reduce_sum(intra_class_distance, axis=1, keepdims=True)
         return tf.cast(intra_class_distance, dtype=tf.float32)
-
-

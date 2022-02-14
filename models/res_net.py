@@ -39,7 +39,7 @@ class ResNet(BaseNet):
 
 
 if __name__ == '__main__':
-    net = RestNet(num_batches=10, global_results_dir=Path('.'), const_type=None, model_path=None)
+    net = ResNet(num_batches=10, global_results_dir=Path('.'), const_type=None, model_path=None)
     m = net.create_model(num_outputs=28, height=480, width=800, model_name=None, use_pretrained=True)
 
     print(' ')
