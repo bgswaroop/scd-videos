@@ -5,6 +5,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
+# from .compute_model_level_scores import compute_model_level_labels
+
 
 class VideoPredictor:
 
@@ -60,6 +62,8 @@ class VideoPredictor:
         max_softmax = [[float(y) for y in x.strip('[]').split()] for x in df_frame_predictions['Softmax Scores']]
         max_softmax = [float(max(np.array(x))) for x in max_softmax]
         df_frame_predictions = df_frame_predictions.assign(max_softmax=max_softmax)
+
+        # df_frame_predictions = compute_model_level_labels(df_frame_predictions)
 
         # range_mid_point = 0.6150  # best max homogeneity score (test set)
         # range_mid_point = 0.5389    # best mean homogeneity score (test set)
