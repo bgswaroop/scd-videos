@@ -138,14 +138,21 @@ class DataFactory:
         #     img = tf.py_function(self.center_crop, [img], tf.uint8)
         #     img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
         # except:
+
         img0 = tf.image.decode_png(tf.io.read_file(file_path[0]), channels=3)
         img1 = tf.image.decode_png(tf.io.read_file(file_path[1]), channels=3)
         img2 = tf.image.decode_png(tf.io.read_file(file_path[2]), channels=3)
+
         img0 = tf.py_function(self.center_crop, [img0], tf.uint8)[:, :, 1]
         img1 = tf.py_function(self.center_crop, [img1], tf.uint8)[:, :, 1]
         img2 = tf.py_function(self.center_crop, [img2], tf.uint8)[:, :, 1]
-        img = tf.stack([img0, img1, img2], axis=-1)
-        img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
+
+        img0 = tf.image.per_image_standardization(tf.expand_dims(img0, -1))
+        img1 = tf.image.per_image_standardization(tf.expand_dims(img1, -1))
+        img2 = tf.image.per_image_standardization(tf.expand_dims(img2, -1))
+
+        img = tf.concat([img0, img1, img2], axis=2)
+        # img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
 
         # img = tf.image.convert_image_dtype(img, tf.dtypes.float32)
         # img = tf.py_function(self.center_crop, [img], tf.float32)
@@ -201,13 +208,13 @@ class DataFactory:
         file_path_ds = tf.data.Dataset.from_tensor_slices(self.train_data)
         if category == 'native':
             ds_list = [x for x in file_path_ds if
-                       ('WA' not in x.numpy().decode("utf-8")) and ('YT' not in x.numpy().decode("utf-8"))]
+                       ('WA' not in x[0].numpy().decode("utf-8")) and ('YT' not in x[0].numpy().decode("utf-8"))]
             file_path_ds = tf.data.Dataset.from_tensor_slices(ds_list)
         elif category == 'whatsapp':
-            ds_list = [x for x in file_path_ds if 'WA' in x.numpy().decode("utf-8")]
+            ds_list = [x for x in file_path_ds if 'WA' in x[0].numpy().decode("utf-8")]
             file_path_ds = tf.data.Dataset.from_tensor_slices(ds_list)
         elif category == 'youtube':
-            ds_list = [x for x in file_path_ds if 'YT' in x.numpy().decode("utf-8")]
+            ds_list = [x for x in file_path_ds if 'YT' in x[0].numpy().decode("utf-8")]
             file_path_ds = tf.data.Dataset.from_tensor_slices(ds_list)
 
         print(f"Found {len(list(file_path_ds))} images in ({int(time.time() - t_start)} sec.)")
@@ -249,13 +256,13 @@ class DataFactory:
 
         if category == 'native':
             ds_list = [x for x in file_path_ds if
-                       ('WA' not in x.numpy().decode("utf-8")) and ('YT' not in x.numpy().decode("utf-8"))]
+                       ('WA' not in x[0].numpy().decode("utf-8")) and ('YT' not in x[0].numpy().decode("utf-8"))]
             file_path_ds = tf.data.Dataset.from_tensor_slices(ds_list)
         elif category == 'whatsapp':
-            ds_list = [x for x in file_path_ds if 'WA' in x.numpy().decode("utf-8")]
+            ds_list = [x for x in file_path_ds if 'WA' in x[0].numpy().decode("utf-8")]
             file_path_ds = tf.data.Dataset.from_tensor_slices(ds_list)
         elif category == 'youtube':
-            ds_list = [x for x in file_path_ds if 'YT' in x.numpy().decode("utf-8")]
+            ds_list = [x for x in file_path_ds if 'YT' in x[0].numpy().decode("utf-8")]
             file_path_ds = tf.data.Dataset.from_tensor_slices(ds_list)
 
         print(f"Found {len(list(file_path_ds))} images in ({int(time.time() - t_start)} sec.)")

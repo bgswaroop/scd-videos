@@ -24,7 +24,7 @@ class BaseNet(abc.ABC):
         self.model_name = None
 
         # Constrained layer properties
-        assert const_type in {None, 'guru', 'derrick'}
+        assert const_type in {'bug', 'guru', 'derrick'}
         self.const_type = const_type
         self.constrained_n_filters = 3
         self.constrained_kernel_size = 5
@@ -65,7 +65,8 @@ class BaseNet(abc.ABC):
     def compile(self):
         # custom_loss = self.make_custom_loss(self.model)
         self.model.compile(loss=tf.keras.losses.categorical_crossentropy,
-                           optimizer=tf.keras.optimizers.SGD(learning_rate=self.lr, momentum=0.95, decay=0.0005),
+                           # optimizer=tf.keras.optimizers.SGD(learning_rate=self.lr, momentum=0.95, decay=0.0005),
+                           optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr),
                            metrics=["accuracy"],
                            run_eagerly=True
                            )
@@ -149,15 +150,20 @@ class BaseNet(abc.ABC):
         #     # ),
         #     verbose=1)
 
-        steps_per_epoch = tf.data.experimental.cardinality(train_ds).numpy()
-        warm_up_epochs = 0.25 if epochs < 3 else 3
-        lr_callback = WarmUpCosineDecayScheduler(learning_rate_base=self.lr,
-                                                 total_steps=epochs * steps_per_epoch,
-                                                 global_step_init=completed_epochs * steps_per_epoch,
-                                                 warmup_learning_rate=0,
-                                                 warmup_steps=int(warm_up_epochs * steps_per_epoch),
-                                                 hold_base_rate_steps=0,
-                                                 verbose=1)
+        # steps_per_epoch = tf.data.experimental.cardinality(train_ds).numpy()
+        # warm_up_epochs = 0.25 if epochs < 3 else 3
+        # lr_callback = WarmUpCosineDecayScheduler(learning_rate_base=self.lr,
+        #                                          total_steps=epochs * steps_per_epoch,
+        #                                          global_step_init=completed_epochs * steps_per_epoch,
+        #                                          warmup_learning_rate=0,
+        #                                          warmup_steps=int(warm_up_epochs * steps_per_epoch),
+        #                                          hold_base_rate_steps=0,
+        #                                          verbose=1)
+
+        lr_callback = tf.keras.callbacks.ReduceLROnPlateau(
+            monitor='val_loss', factor=0.1, patience=10, verbose=1,
+            mode='auto', min_delta=0.0001, cooldown=0, min_lr=0
+        )
 
         # print_predictions_cb = PredictionsCallback(train_ds=train_ds, val_ds=val_ds)
 

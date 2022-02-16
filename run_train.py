@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument('--frames_per_video', type=int, default=50,
                         help='to determine #frames to sample for creating multi-frame dataset for the ConvNet')
     parser.add_argument('--gpu_id', type=int, default=None, help='Choose the available GPU devices')
-    parser.add_argument('--category', type=str, choices=["native", "whatsapp", "youtube"])
+    parser.add_argument('--category', type=str, default=None, choices=["native", "whatsapp", "youtube"])
     parser.add_argument('--global_results_dir', type=Path, required=True, help='Path to results dir')
     parser.add_argument('--const_type', type=none_or_str, default=None, help='Constraint type')
     parser.add_argument('--net_type', type=str, default='mobile',
@@ -69,7 +69,7 @@ def run_flow():
                                batch_size=p.batch_size,
                                height=p.height,
                                width=p.width,
-                               frames_per_video = p.frames_per_video,
+                               frames_per_video=p.frames_per_video,
                                homogeneous_frames=p.homo_or_not)
 
     distance_matrix = None  # data_factory.get_distance_matrix()

@@ -1,5 +1,6 @@
 import argparse
 import os
+import random
 from pathlib import Path
 
 import tensorflow as tf
@@ -101,11 +102,13 @@ def run_flow():
 
     model_name = p.input_dir.split(os.path.sep)[-1]
     model_files = get_models_files(p.input_dir, p.models)
+    random.shuffle(model_files)
     _, frames_res_dir, videos_res_dir, plots_res_dir = get_result_dir(p.input_dir,
                                                                       primary_suffix=p.category,
                                                                       secondary_suffix=p.suffix)
     if p.epoch > 0:
         model_files = [x for x in model_files if str(p.epoch).zfill(5) in x]
+
     print(f"Found {len(model_files)} files for model {model_name}")
 
     dataset = DataFactory(p.dataset, p.batch_size, p.height, p.width, p.frames_per_video, p.homo_or_not)

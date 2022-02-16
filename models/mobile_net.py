@@ -10,7 +10,7 @@ from . import BaseNet, Constrained3DKernelMinimal, PPCCELoss
 class MobileNet(BaseNet):
     def __init__(self, num_batches, global_results_dir, const_type, model_path=None, lr=0.1):
         super().__init__(num_batches, global_results_dir, const_type, model_path, lr)
-        assert const_type in {None, 'guru', 'derrick'}
+        assert const_type in {'bug', 'guru', 'derrick'}
         self.const_type = const_type
 
     def create_model(self, num_outputs, height, width, distance_matrix, model_name=None, use_pretrained=True):
