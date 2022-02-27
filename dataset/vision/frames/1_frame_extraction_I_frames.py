@@ -8,32 +8,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-# def create_I_frame_dataset(all_frames_views_dir, all_I_frames_views_dir, dataset_root_dir):
-#     module = 'module load FFmpeg/4.2.2-GCCcore-9.3.0'  # load the ffmpeg module on the Peregrine
-#     for split in all_frames_views_dir.glob('*.json'):
-#         with open(split) as f:
-#             all_frames_dict = json.load(f)
-#
-#         all_frames_I_dict = {}
-#         for device in tqdm(all_frames_dict):
-#             all_frames_I_dict[device] = []
-#             videos = set([Path(x).parent.name for x in all_frames_dict[device]])
-#             for video in videos:
-#                 if len(list(dataset_root_dir.glob(rf'*/videos/*/{video}*'))) != 1:
-#                     raise ValueError('Debug and check, why this is not equal to 1')
-#                 video_path = list(dataset_root_dir.glob(rf'*/videos/*/{video}*'))[0]
-#                 cmd = f"{module}\nffprobe {str(video_path)} -show_frames | grep -E 'pict_type'"
-#                 frame_types = subprocess.run(cmd, shell=True, capture_output=True).stdout.decode('ascii').split('\n')
-#                 frame_ids = set([str(idx + 1).zfill(5) for idx, x in enumerate(frame_types) if x == 'pict_type=I'])
-#
-#                 all_frame_paths = [Path(x) for x in all_frames_dict[device] if Path(x).parent.name == video]
-#                 I_frame_paths = sorted([str(x) for x in all_frame_paths if x.name.split('-')[1][:5] in frame_ids])
-#                 all_frames_I_dict[device].extend(I_frame_paths)
-#
-#         all_I_frames_views_dir.mkdir(parents=True, exist_ok=True)
-#         with open(all_I_frames_views_dir.joinpath(split.name), 'w+') as f:
-#             json.dump(all_frames_I_dict, f, indent=2)
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Extract and save I frames from videos',
@@ -126,10 +100,6 @@ def create_I_frames_dataset(args):
         print('Finished processing the video')
 
 
-def fix_file_names():
-    pass
-
-
 def run_flow():
     args = parse_args()
     create_I_frames_dataset(args)
@@ -144,19 +114,7 @@ def create_N_frames_split_from_all_frames(source_split_dir, dest_split_dir, num_
             input_data = json.load(f)
 
         output_data = {}
-        # corrected_input_data = {}
-        # correct_I_frame_dir = Path(r'/scratch/p288722/datasets/vision/all_I_frames')
         for device_name, frames in tqdm(sorted(input_data.items())):
-            # frames = [correct_I_frame_dir.joinpath(Path(x).parent.parent.name).joinpath(Path(x).parent.name).joinpath(
-            #     Path(x).name) for x in old_frames]
-            # frames = [Path(str(x).replace('.mov-','-')) for x in frames]
-            # frames = [Path(str(x).replace('.mov/', '/')) for x in frames]
-
-            # for x in frames:
-            #     assert x.exists(), f'Path: {x} - does not exists!'
-            # frames = sorted([str(x) for x in frames])
-
-            # corrected_input_data[device_name] = frames
             if frames:
                 # segregate frames based on frames-per-video
                 frames_per_video = {}
@@ -180,8 +138,10 @@ def create_N_frames_split_from_all_frames(source_split_dir, dest_split_dir, num_
         output_split_file = dest_split_dir.joinpath(input_split_file.name)
         with open(output_split_file, 'w+') as f:
             json.dump(output_data, f, indent=2)
-        # with open(input_split_file, 'w+') as f:
-        #     json.dump(corrected_input_data, f, indent=2)
+
+
+def measure_time_to_extract_I_frames():
+    cmd = """time ffmpeg -i /data/p288722/datasets/VISION/dataset/D02_Apple_iPhone4s/videos/outdoor/D02_V_outdoor_move_0001.mov -vf "select='eq(pict_type,I)'" -vsync vfr out-%04d.png"""
 
 
 if __name__ == '__main__':

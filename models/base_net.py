@@ -166,8 +166,16 @@ class BaseNet(abc.ABC):
         )
 
         # print_predictions_cb = PredictionsCallback(train_ds=train_ds, val_ds=val_ds)
+        # lr_callback = tf.keras.callbacks.LearningRateScheduler(self.scheduler)
 
         return [save_model_cb, tensorboard_cb, lr_callback]
+
+    @staticmethod
+    def scheduler(epoch, lr):
+        if epoch != 0 and epoch % 6 == 0:
+            return lr / 2
+        else:
+            return lr
 
     def evaluate(self, test_ds, model_path=None):
         if model_path is not None:

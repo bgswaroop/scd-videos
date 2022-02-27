@@ -89,10 +89,6 @@ if __name__ == '__main__':
     parser.add_argument('--input_dir', type=str, required=True,
                         help='Path to VISION dataset (input directory consisting of folders per device)')
     parser.add_argument('--output_dir', type=str, required=True, help='Output directory to save the frames')
-    parser.add_argument('--frames_to_save_per_video', type=int, default=1, required=False,
-                        help='Number of frames to save per video')
-    parser.add_argument('--save_frame_per_second', type=bool, default=False, required=False,
-                        help='Extract and save a single frame per second (overrules --frames_per_video if set to true)')
     parser.add_argument('--devices', type=str, required=False,
                         help='Only extract frames of these devices (separated by a \',\')')
     parser.add_argument('--device_id', type=int, required=False, help='Specify device ID')

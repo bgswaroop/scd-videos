@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="p288722@pg-gpu.hpc.rug.nl:22 password" createEmptyFolders="true" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="scd_videos_first_revision" createEmptyFolders="true" autoUploadExternalChanges="true">
     <serverData>
       <paths name="A40">
         <serverdata>
@@ -13,13 +13,6 @@
         <serverdata>
           <mappings>
             <mapping deploy="/home/p288722/git_code/scd_videos_first_revision" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="p288722@pg-gpu.hpc.rug.nl:22 password">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
@@ -41,6 +34,20 @@
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="scd_videos_first_revision">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="scd_videos_second_project">
+        <serverdata>
+          <mappings>
+            <mapping deploy="\" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

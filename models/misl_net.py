@@ -9,7 +9,7 @@ class MISLNet(BaseNet):
     def __init__(self, num_batches, global_results_dir, const_type, model_path=None):
         super().__init__(num_batches, global_results_dir, const_type, model_path)
 
-    def create_model(self, num_output, fc_layers, fc_size, height=480, width=800, model_name=None):
+    def create_model(self, num_output, height=480, width=800, model_name=None):
 
         input_shape = (height, width, 3)
         model = Sequential()
@@ -49,13 +49,12 @@ class MISLNet(BaseNet):
         model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
 
         model.add(Flatten())
-
+        fc_layers = 2
+        fc_size = 1024
         for i in range(fc_layers):
             model.add(Dense(fc_size, activation=tf.keras.activations.tanh))
-            # model.add(Dropout(rate=0.5))
 
         model.add(Dense(num_output, activation=None))
-        # model.add(Dense(num_output, activation=tf.keras.activations.softmax))
         model.add(Softmax())
 
         self.model = model

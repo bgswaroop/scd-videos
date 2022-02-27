@@ -131,11 +131,11 @@ class Constrained3DKernelMinimal(Constraint):
         center_zero_mask = np.ones(w.shape)
         center_zero_mask[center, center, :, :] = 0
         w *= center_zero_mask
-        w = tf.math.divide(w, tf.reduce_sum(w, axis=[0, 1], keepdims=True))
+        w = tf.math.divide(w, tf.reduce_sum(w, axis=[0, 1], keepdims=True)) * 10000
 
         # 3. Set the center value to -1
         center_one_mask = np.zeros(w.shape)
-        center_one_mask[center, center, :, :] = 1
+        center_one_mask[center, center, :, :] = 10000
         w = tf.math.subtract(w, center_one_mask)
 
         return w

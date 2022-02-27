@@ -44,5 +44,3 @@ if __name__ == '__main__':
         num_fragments=10,
         output_dataset_dir=Path(r'/scratch/p288722/datasets/vision/bal_all_frames_fragments/')
     )
-
-    # shutil.rmtree(r'/scratch/p288722/datasets/VISION/bal_28D_all_frames')

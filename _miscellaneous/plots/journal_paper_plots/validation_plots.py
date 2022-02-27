@@ -5,19 +5,19 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 
 
-def make_combined_plots_horizontal(plots, replace_string=None):
+def make_combined_plots_horizontal(plots):
     plt.figure()
-    fig, axs = plt.subplots(2, 1, figsize=(6, 5), dpi=300, sharex=True)
+    fig, axs = plt.subplots(2, 1, figsize=(7, 5), dpi=300, sharex=True)
 
     plt.rcParams.update({'font.size': 9})
     num_epochs_after_max = 100
 
-    palette = {'MISLNet': ('tab:orange', '-'),
-               'MISLNet - Constrained': ('tab:orange', '--'),
-               'MobileNet': ('tab:green', '-'),
+    palette = {'MobileNet': ('tab:green', '-'),
                'MobileNet - Constrained': ('tab:green', '--'),
-               'EfficientNet': ('tab:blue', '-'),
-               'EfficientNet - Constrained': ('tab:blue', '--')
+               'ResNet': ('tab:orange', '-'),
+               'ResNet - Constrained': ('tab:orange', '--'),
+               'MobileNet (QUFVD)': ('tab:purple', '-'),
+               'MobileNet - Constrained (QUFVD)': ('tab:purple', '--'),
                }
 
     for plot_name in plots:
@@ -35,17 +35,9 @@ def make_combined_plots_horizontal(plots, replace_string=None):
             min_loss_indices = set([i for i, x in enumerate(test_loss) if x == max_elem[1]])
             index = min(max_acc_indices.intersection(min_loss_indices))
 
-            model_path = list(plots[plot_name].parent.parent.parent.glob(f'*{str(index + 1).zfill(5)}.h5'))[0]
-            tmp = list(model_path.parts)[:-1]
-            # tmp[-4] = replace_string
-            tmp[-4] += '_pred'
-            dest_path = Path('/'.join(tmp))
-            dest_path.mkdir(exist_ok=True, parents=True)
-            shutil.copy(model_path, dest_path)
-
             test_loss = test_loss[:index + num_epochs_after_max]
             test_acc = test_acc[:index + num_epochs_after_max]
-            epochs = list(range(1, len(test_loss) + 1))
+            epochs = list(range(1, len(test_acc) + 1))
 
             axs[0].plot(epochs, test_acc, label=plot_name, alpha=0.7, color=color, linestyle=style)
             color = axs[0].lines[-1].get_color()
@@ -78,13 +70,14 @@ def make_combined_plots_horizontal(plots, replace_string=None):
 
     # axs[0].set_xlabel('epochs')
     axs[0].set_ylabel('Validation  accuracy')
-    axs[0].set_ylim([0.20, 0.70])
-    axs[0].set_xlim([0, 20])
+    # axs[0].set_ylim([0.20, 0.70])
+    # axs[0].set_xlim([0, 20])
 
     axs[1].set_xlabel('epochs')
     axs[1].set_ylabel('Validation  loss')
-    axs[1].set_ylim([0.20, 0.37])
-    axs[1].set_xlim([0, 21])
+    axs[1].set_yscale('log')
+    # axs[1].set_ylim([0.20, 0.37])
+    axs[1].set_xlim([0, 41])
 
     plt.subplots_adjust(wspace=0.05, hspace=0.08)
 
@@ -113,29 +106,31 @@ def make_combined_plots_horizontal(plots, replace_string=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--val_summary', type=Path, required=True, help='Path to validation summary')
+    parser.add_argument('--val_summary', type=Path, help='Path to validation summary')
     args = parser.parse_args()
 
-    plot_data = {'MobileNet - Constrained': args.val_summary}
-    make_combined_plots_horizontal(plot_data, replace_string='50_frames_8d_64_pred')
+    # plot_data = {'MobileNet - Constrained': args.val_summary}
+    # make_combined_plots_horizontal(plot_data)
 
     plot_data = {
-        'MobileNet - Constrained': Path(
-            r'/scratch/p288722/runtime_data/scd-videos/no_frame_selection/50_frames_8d_64/mobile_net/models/'
-            r'h0_lab_ConvNet/predictions_50_frames_val/videos/V_prediction_stats.csv'),
+        'MobileNet': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/06_I_frames_bs64/'
+                          r'50_frames/mobile_net/models/MobileNet_50_I_frames_ccrop_run2/predictions_50_frames_val/'
+                          r'videos/V_prediction_stats.csv'),
+        'ResNet': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/06_I_frames_bs32/'
+                       r'50_frames/res_net/models/ResNet_50_I_frames_ccrop_run2/predictions_50_frames_val/'
+                       r'videos/V_prediction_stats.csv'),
+        'MobileNet - Constrained': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/11_constraints_bs64/'
+                                        r'50_frames/mobile_net/models/MobileNet_50_I_frames_ccrop_run1_Const/'
+                                        r'predictions_50_frames_val/videos/V_prediction_stats.csv'),
+        'ResNet - Constrained': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/11_constraints_bs64/'
+                                     r'50_frames/res_net/models/ResNet_50_I_frames_ccrop_run1_Const/'
+                                     r'predictions_50_frames_val/videos/V_prediction_stats.csv'),
+        'MobileNet (QUFVD)': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/'
+                                  r'14_qufvd/all_frames/mobile_net/models/MobileNet_all_I_frames_ccrop_run1/'
+                                  r'predictions_all_frames/videos/V_prediction_stats.csv'),
+        'MobileNet - Constrained (QUFVD)': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/'
+                                                r'14_qufvd/all_frames/mobile_net/models/'
+                                                r'MobileNet_all_I_frames_ccrop_run1_Const/predictions_all_frames/'
+                                                r'videos/V_prediction_stats.csv'),
     }
-    make_combined_plots_horizontal(plot_data, replace_string='50_frames_8d_64_pred')
-
-    plot_data = {
-        'MobileNet - Constrained': Path(
-            r'/scratch/p288722/runtime_data/scd-videos/i_frames/all_frames_8d_64/mobile_net/models/'
-            r'h0_lab_ConstNet_derrick/predictions_all_frames_val/videos/V_prediction_stats.csv'),
-    }
-    make_combined_plots_horizontal(plot_data, replace_string='all_frames_8d_64_pred')
-
-    plot_data = {
-        'MobileNet - Constrained': Path(
-            r'/scratch/p288722/runtime_data/scd-videos/i_frames/all_frames_8d_64/mobile_net/models/'
-            r'h0_lab_ConvNet/predictions_all_frames_val/videos/V_prediction_stats.csv'),
-    }
-    make_combined_plots_horizontal(plot_data, replace_string='all_frames_8d_64_pred')
+    make_combined_plots_horizontal(plot_data)

@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 sys.path.insert(1, '/home/p288722/git_code/scd-videos')
 
-from dataset.data_factory import DataFactory
+from dataset.vision.data_factory import DataFactory
 from models import Constrained3DKernelMinimal, CombineInputsWithConstraints, PPCCELoss
 
 

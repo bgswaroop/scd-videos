@@ -9,19 +9,17 @@ from keract import keract
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from dataset import DataFactory
-# from dataset.data_factory import get_glcm_properties
+import dataset
 
 
 class FramePredictor:
 
-    def __init__(self, model_dir, model_file_name, result_dir, input_dir, homogeneity_csv,
-                 weights_only=False, model_class=None):
+    def __init__(self, model_dir, model_file_name, result_dir):
         self.model_dir = model_dir
         self.model_file_name = model_file_name
         self.result_dir = result_dir
-        self.input_dir = input_dir
-        self.homogeneity_csv = homogeneity_csv
+        # self.input_dir = input_dir
+        # self.homogeneity_csv = homogeneity_csv
 
         # Load model
         from models import Constrained3DKernelMinimal, CombineInputsWithConstraints, PPCCELoss
@@ -31,15 +29,11 @@ class FramePredictor:
             'CombineInputsWithConstraints': CombineInputsWithConstraints,
             'PPCCELoss': PPCCELoss,
         }
-        if weights_only:  # fixme: deprecated functionality
-            model_class.model.load_weights(model_path)
-            self.model = model_class.model
-        else:
-            self.model = tf.keras.models.load_model(model_path, custom_objects=custom_objects, compile=False)
+        self.model = tf.keras.models.load_model(model_path, custom_objects=custom_objects, compile=False)
 
-    def start(self, test_ds, filenames):
+    def start(self, test_ds, filenames, onehot_ground_truths):
         output_file = self.get_output_file()
-        return self._predict_and_save(test_ds, filenames, output_file)
+        return self._predict_and_save(test_ds, filenames, onehot_ground_truths, output_file)
 
     def get_output_file(self):
         output_file = f"{self.model_file_name.split('.')[0]}_F_predictions.csv"
@@ -115,46 +109,30 @@ class FramePredictor:
             plt.clf()
             plt.close()
 
-    def __predict_frames(self, test_ds):
+    def __predict_frames(self, test_ds, onehot_ground_truths):
 
         # self.__plot_constrained_filter()
         # self.__plot_constrained_activations(test_ds)
-
-        # self.model.compile()
-        # evaluate_dict = self.model.evaluate(test_ds, return_dict=True)
-        softmax_scores = self.model.predict(test_ds, verbose=1)
-
         # layer_name = 'conv2d_25'
         # intermediate_layer_model = Model(inputs=self.model.input, outputs=self.model.get_layer(layer_name).output)
         # outputs_before_softmax = intermediate_layer_model.predict(test_ds, verbose=1)
 
-        actual_labels = DataFactory.get_labels(test_ds)
+        softmax_scores = self.model.predict(test_ds, verbose=1)
 
         # Use reduction type 'None' to create array of losses for each prediction
         cce = tf.keras.losses.CategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE)
-        cce_losses = cce(actual_labels, softmax_scores).numpy()
+        cce_losses = cce(onehot_ground_truths, softmax_scores).numpy()
 
         # Both actual and predicted labels are in one-hot vector form
-        actual_labels = [np.argmax(x) for x in actual_labels]
+        onehot_ground_truths = [np.argmax(x) for x in onehot_ground_truths]
         predictions = [np.argmax(x) for x in softmax_scores]
         prediction_losses = [x for x in cce_losses]
 
-        return actual_labels, predictions, prediction_losses, softmax_scores
+        return onehot_ground_truths, predictions, prediction_losses, softmax_scores
 
-    def _predict_and_save(self, test_ds, filenames, output_file):
-        true_labels, predicted_labels, losses, softmax_scores = self.__predict_frames(test_ds=test_ds)
+    def _predict_and_save(self, test_ds, filenames, onehot_ground_truths, output_file):
+        true_labels, predicted_labels, losses, softmax_scores = self.__predict_frames(test_ds, onehot_ground_truths)
         df = pd.DataFrame(list(zip(filenames, true_labels, predicted_labels, losses, softmax_scores)),
                           columns=["File", "True Label", "Predicted Label", "Loss", "Softmax Scores"])
         df.to_csv(output_file, index=False)
-
-        # Add the homogeneity score computations to the data_frame
-        # df = self.__compute_homogeneity_score(df)
-        df.to_csv(output_file, index=False)
-
         return output_file
-
-    def __compute_homogeneity_score(self, pred_df):
-        homo_df = pd.read_csv(self.homogeneity_csv)
-        pred_df = pd.merge(homo_df, pred_df, on='File')
-        pred_df = pred_df.loc[:, ~pred_df.columns.str.contains('^Unnamed')]
-        return pred_df

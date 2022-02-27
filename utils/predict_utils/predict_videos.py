@@ -8,9 +8,10 @@ import numpy as np
 
 class VideoPredictor:
 
-    def __init__(self, model_file_name=None, result_dir=None):
+    def __init__(self, model_file_name=None, result_dir=None, dataset_name=None):
         self.model_file_name = model_file_name
         self.result_dir = result_dir
+        self.dataset_name = dataset_name
         # Top k predicted classes will be saved in csv-file
         self.top_k_predictions = 3
 
@@ -54,8 +55,14 @@ class VideoPredictor:
 
     def __get_predictions(self, df_frame_predictions):
         # Determine unique videos
-        # videos = df_frame_predictions["File"].str.split("-").str[0].unique()
-        videos = sorted({x.split(',')[0].strip('[]\\\'').split('-')[0] for x in df_frame_predictions["File"]})
+        if self.dataset_name == 'vision':
+            videos = df_frame_predictions["File"].str.split("-").str[0].unique()
+        elif self.dataset_name == 'qufvd':
+            df_frame_predictions["File"] = df_frame_predictions["File"].str.replace('(', '<').str.replace(')', '>')
+            videos = df_frame_predictions["File"].str.split("-").str[-5:-2].str.join('-').unique()
+        else:
+            raise ValueError(f'Invalid dataset name - {self.dataset_name}')
+
         print(f"Total number of videos to classify: {len(videos)}.")
 
         max_softmax = [[float(y) for y in x.strip('[]').split()] for x in df_frame_predictions['Softmax Scores']]

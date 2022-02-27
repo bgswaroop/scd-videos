@@ -1,19 +1,19 @@
 import itertools
 import json
 import math
-import numpy as np
 import os
 import random
-import tensorflow as tf
 import time
-from PIL import Image
-from PIL import ImageFile
-from collections import namedtuple
 from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
+from PIL import ImageFile
+
+from .frame_selection import get_frames_dataset
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-# tf.data.experimental.enable_debug_mode()
 tf.config.run_functions_eagerly(True)
 
 
@@ -54,32 +54,27 @@ tf.config.run_functions_eagerly(True)
 
 class DataFactory:
 
-    def __init__(self, input_dir, batch_size, height, width, frames_per_video, homogeneous_frames=None):
+    def __init__(self, args):
 
+        self.train_data = get_frames_dataset('train', args)
+        self.train_data = list(itertools.chain.from_iterable(self.train_data.values()))
+        # self.train_data = self._filter_images_based_on_homogeneity(self.train_data, homogeneous_frames)
         random.seed(108)
-        with open(Path(input_dir).joinpath('train.json'), 'r') as f:
-            self.train_data = json.load(f)
-            self.class_names = np.array(sorted(self.train_data.keys()))
-            self.train_data = self._sample_triplets(self.train_data, frames_per_video)
-            # self.train_data = list(itertools.chain.from_iterable(self.train_data.values()))
-            # self.train_data = self._filter_images_based_on_homogeneity(self.train_data, homogeneous_frames)
-            random.shuffle(self.train_data)
+        random.shuffle(self.train_data)
 
-        with open(Path(input_dir).joinpath('val.json'), 'r') as f:
-            self.val_data = json.load(f)
-            self.val_data = sorted(self._sample_triplets(self.val_data, frames_per_video))
-            # self.val_data = sorted(itertools.chain.from_iterable(self.val_data.values()))
-            # self.val_data = self._filter_images_based_on_homogeneity(self.val_data, homogeneous_frames)
+        self.val_data = get_frames_dataset('val', args)
+        self.val_data = sorted(itertools.chain.from_iterable(self.val_data.values()))
+        # self.val_data = self._filter_images_based_on_homogeneity(self.val_data, homogeneous_frames)
 
-        with open(Path(input_dir).joinpath('test.json'), 'r') as f:
-            self.test_data = json.load(f)
-            self.test_data = sorted(self._sample_triplets(self.test_data, frames_per_video))
-            # self.test_data = sorted(itertools.chain.from_iterable(self.test_data.values()))
-            # self.test_data = self._filter_images_based_on_homogeneity(self.test_data, homogeneous_frames)
+        self.test_data = get_frames_dataset('test', args)
+        self.test_data = sorted(itertools.chain.from_iterable(self.test_data.values()), reverse=True)
+        # self.test_data = self._filter_images_based_on_homogeneity(self.test_data, homogeneous_frames)
 
-        self.batch_size = batch_size
-        self.img_width = width
-        self.img_height = height
+        self.class_names = self.get_class_names()
+
+        self.batch_size = args.batch_size
+        self.img_width = args.width
+        self.img_height = args.height
         self.seed = 108  # To allow reproducibility
 
     # @staticmethod
@@ -95,8 +90,12 @@ class DataFactory:
     #     pool.close()
     #     return img_paths
 
-    def get_class_names(self):
-        return self.class_names
+    @staticmethod
+    def get_class_names():
+        video_level_split = Path(__file__).resolve().parent.joinpath(f'split/train_videos.json')
+        with open(video_level_split) as f:
+            videos_per_device = json.load(f)
+        return np.array(sorted(videos_per_device))
 
     def get_tf_input_dim(self):
         return tf.constant((self.img_height, self.img_width), tf.dtypes.int32)
@@ -107,6 +106,7 @@ class DataFactory:
         return img, label
 
     def get_label(self, file_path):
+        # indexing into the first item as the file_path is a 3-tuple of file_paths
         file_parts = tf.strings.split(file_path[0], os.path.sep)
         class_name = file_parts[-3]
         one_hot_vec = tf.cast(class_name == self.class_names, dtype=tf.dtypes.float32, name="labels")
