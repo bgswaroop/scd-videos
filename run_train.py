@@ -44,7 +44,6 @@ def parse_args():
     parser.add_argument('--height', type=int, default=480, help='Height of CNN input dimension [default: 480]')
     parser.add_argument('--width', type=int, default=800, help='Width of CNN input dimension [default: 800]')
     parser.add_argument('--gpu_id', type=int, default=None, help='Choose the available GPU devices')
-    parser.add_argument('--category', type=str, help='enter "native", "whatsapp", or "youtube"')
     parser.add_argument('--global_results_dir', type=Path, required=True, help='Path to results dir')
     parser.add_argument('--const_type', type=none_or_str, default=None, help='Constraint type')
     parser.add_argument('--net_type', type=str, default='mobile',

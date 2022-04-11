@@ -12,10 +12,10 @@ def make_combined_plots_horizontal(plots):
     plt.rcParams.update({'font.size': 9})
     num_epochs_after_max = 100
 
-    palette = {'MobileNet': ('tab:green', '-'),
-               'MobileNet - Constrained': ('tab:green', '--'),
-               'ResNet': ('tab:orange', '-'),
-               'ResNet - Constrained': ('tab:orange', '--'),
+    palette = {'MobileNet (VISION)': ('tab:green', '-'),
+               'MobileNet - Constrained (VISION)': ('tab:green', '--'),
+               'ResNet (VISION)': ('tab:orange', '-'),
+               'ResNet - Constrained (VISION)': ('tab:orange', '--'),
                'MobileNet (QUFVD)': ('tab:purple', '-'),
                'MobileNet - Constrained (QUFVD)': ('tab:purple', '--'),
                }
@@ -113,24 +113,31 @@ if __name__ == '__main__':
     # make_combined_plots_horizontal(plot_data)
 
     plot_data = {
-        'MobileNet': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/06_I_frames_bs64/'
-                          r'50_frames/mobile_net/models/MobileNet_50_I_frames_ccrop_run2/predictions_50_frames_val/'
-                          r'videos/V_prediction_stats.csv'),
-        'ResNet': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/06_I_frames_bs32/'
-                       r'50_frames/res_net/models/ResNet_50_I_frames_ccrop_run2/predictions_50_frames_val/'
-                       r'videos/V_prediction_stats.csv'),
-        'MobileNet - Constrained': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/11_constraints_bs64/'
-                                        r'50_frames/mobile_net/models/MobileNet_50_I_frames_ccrop_run1_Const/'
-                                        r'predictions_50_frames_val/videos/V_prediction_stats.csv'),
-        'ResNet - Constrained': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/11_constraints_bs64/'
-                                     r'50_frames/res_net/models/ResNet_50_I_frames_ccrop_run1_Const/'
-                                     r'predictions_50_frames_val/videos/V_prediction_stats.csv'),
-        'MobileNet (QUFVD)': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/'
-                                  r'14_qufvd/all_frames/mobile_net/models/MobileNet_all_I_frames_ccrop_run1/'
-                                  r'predictions_all_frames/videos/V_prediction_stats.csv'),
-        'MobileNet - Constrained (QUFVD)': Path(r'/scratch/p288722/runtime_data/scd_videos_first_revision/'
-                                                r'14_qufvd/all_frames/mobile_net/models/'
-                                                r'MobileNet_all_I_frames_ccrop_run1_Const/predictions_all_frames/'
-                                                r'videos/V_prediction_stats.csv'),
+        'MobileNet (VISION)': Path(
+            r'/scratch/p288722/runtime_data/scd_videos_first_revision/06_I_frames_bs64/'
+            r'50_frames/mobile_net/models/MobileNet_50_I_frames_ccrop_run2/predictions_50_frames_val/'
+            r'videos/V_prediction_stats.csv'),
+        'MobileNet (QUFVD)': Path(
+            r'/scratch/p288722/runtime_data/scd_videos_first_revision/'
+            r'14_qufvd/all_frames/mobile_net/models/MobileNet_all_I_frames_ccrop_run1/'
+            r'predictions_all_frames/videos/V_prediction_stats.csv'),
+        'ResNet (VISION)': Path(
+            r'/scratch/p288722/runtime_data/scd_videos_first_revision/06_I_frames_bs32/'
+            r'50_frames/res_net/models/ResNet_50_I_frames_ccrop_run2/predictions_50_frames_val/'
+            r'videos/V_prediction_stats.csv'),
+        'MobileNet - Constrained (VISION)': Path(
+            r'/scratch/p288722/runtime_data/scd_videos_first_revision/11_constraints_bs64/'
+            r'50_frames/mobile_net/models/MobileNet_50_I_frames_ccrop_run1_Const/'
+            r'predictions_50_frames_val/videos/V_prediction_stats.csv'),
+        'MobileNet - Constrained (QUFVD)': Path(
+            r'/scratch/p288722/runtime_data/scd_videos_first_revision/'
+            r'14_qufvd/all_frames/mobile_net/models/'
+            r'MobileNet_all_I_frames_ccrop_run1_Const/predictions_all_frames/'
+            r'videos/V_prediction_stats.csv'),
+        'ResNet - Constrained (VISION)': Path(
+            r'/scratch/p288722/runtime_data/scd_videos_first_revision/11_constraints_bs64/'
+            r'50_frames/res_net/models/ResNet_50_I_frames_ccrop_run1_Const/'
+            r'predictions_50_frames_val/videos/V_prediction_stats.csv'),
+
     }
     make_combined_plots_horizontal(plot_data)
