@@ -10,7 +10,7 @@ gast==0.5.3
 h5py==3.6.0
 idna==3.3
 imageio==2.14.1
-joblib==1.1.0
+joblib==1.2.0
 keract==4.5.0
 keras==2.7.0
 Keras-Preprocessing==1.1.2
